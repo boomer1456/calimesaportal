@@ -1,0 +1,30 @@
+node_modules/
+.vercel/
+.nitro/
+.output/
+dist/
+.tanstack/tmp/
+screenshots/
+artifacts/
+*.log
+.grok/preview.log
+.grok/status
+.env
+.env.*
+.DS_Store
+*.local
+
+# Uploaded scans. The app reads copies under public/docs.
+attachments/
+
+# Binder scans stay on disk. Too big for every restore point.
+public/docs/*.pdf
+public/docs/*.xls
+public/docs/*.xlsx
+public/docs/*.docx
+public/docs/*.doc
+public/docs/**/*.pdf
+public/docs/**/*.xls
+public/docs/**/*.xlsx
+public/docs/**/*.docx
+public/docs/**/*.doc
