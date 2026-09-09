@@ -202,8 +202,6 @@ function SheetPane({
     );
   }
 
-  const batches = [...new Set(sorted.map((e) => e.batchId))];
-
   return (
     <div className="flex flex-col gap-3">
       <div className="no-print grid grid-cols-3 gap-2">

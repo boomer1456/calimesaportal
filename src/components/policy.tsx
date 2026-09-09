@@ -87,13 +87,9 @@ export function Policy() {
   }
 
   if (openDoc) {
-    const fromForms = pane === "forms";
     return (
       <BinderReader
         item={openDoc}
-        backLabel={fromForms ? "Forms" : "Policies"}
-        noun={fromForms ? "form" : "policy"}
-        onBack={() => go()}
         onFill={
           openDoc.fillable
             ? () => {
@@ -345,15 +341,9 @@ function DocRow({
 
 function BinderReader({
   item,
-  backLabel,
-  noun,
-  onBack,
   onFill,
 }: {
   item: BinderDoc;
-  backLabel: string;
-  noun: "policy" | "form";
-  onBack: () => void;
   onFill?: () => void;
 }) {
   const slice = policySliceHref(item);
