@@ -180,6 +180,16 @@ export function workbookBlob(rows: CellValue[][], sheetName = "ISA Hours"): Blob
   });
 }
 
+export function zipBlob(
+  files: Array<{ name: string; data: Uint8Array }>,
+  mime: string,
+): Blob {
+  const bytes = zipStore(files);
+  const packed = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(packed).set(bytes);
+  return new Blob([packed], { type: mime });
+}
+
 export function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

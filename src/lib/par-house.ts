@@ -2,6 +2,8 @@ import {
   bumpParMin,
   bumpParQty,
   listParHouse,
+  resetFacilityMins,
+  resetFacilityQty,
   resetParMins,
   resetParQty,
   seedParHouse,
@@ -125,6 +127,35 @@ export function resetHouseMins(level: ParLevel) {
       const result = await resetParMins({ data: { ...creds, level } });
       if (!result.ok) throw new Error(result.error);
       applyParHouse(result.house);
+      useParStore.getState().setStatus("ready");
+    }).catch(async (err) => {
+      useParStore.getState().setStatus("error", err instanceof Error ? err.message : "Could not reset mins.");
+      await loadParHouse();
+    });
+  });
+}
+
+export function resetHouseFacilityQty() {
+  requireIsaAdmin(async (creds: AdminCreds) => {
+    await enqueue(async () => {
+      const result = await resetFacilityQty({ data: creds });
+      if (!result.ok) throw new Error(result.error);
+      applyParHouse(result.house);
+      useParStore.getState().setStatus("ready");
+    }).catch(async (err) => {
+      useParStore.getState().setStatus("error", err instanceof Error ? err.message : "Could not reset on-hand.");
+      await loadParHouse();
+    });
+  });
+}
+
+export function resetHouseFacilityMins() {
+  requireIsaAdmin(async (creds: AdminCreds) => {
+    await enqueue(async () => {
+      const result = await resetFacilityMins({ data: creds });
+      if (!result.ok) throw new Error(result.error);
+      applyParHouse(result.house);
+      useParStore.getState().setStatus("ready");
     }).catch(async (err) => {
       useParStore.getState().setStatus("error", err instanceof Error ? err.message : "Could not reset mins.");
       await loadParHouse();

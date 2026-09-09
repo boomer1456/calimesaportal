@@ -8,6 +8,7 @@ import {
   GraduationCap,
   HeartPulse,
   Radio,
+  Siren,
   Wrench,
   X,
 } from "lucide-react";
@@ -28,6 +29,13 @@ type Tile = {
 
 const ON_SHIFT: Tile[] = [
   {
+    label: "Strike team",
+    hint: "MARS + rates",
+    icon: Siren,
+    tone: "ember",
+    tab: "strike",
+  },
+  {
     label: "Calendar",
     hint: "Drills + hours",
     icon: CalendarDays,
@@ -43,7 +51,7 @@ const ON_SHIFT: Tile[] = [
   },
   {
     label: "Station PAR",
-    hint: "Cabinet check",
+    hint: "EMS + station",
     icon: BriefcaseMedical,
     tone: "ember",
     tab: "ems",
@@ -91,7 +99,7 @@ const HOUSE: Tile[] = [
   },
   {
     label: "Binder",
-    hint: "Policies / forms",
+    hint: "Policies / phone",
     icon: FileText,
     tone: "navy",
     tab: "policy",
@@ -126,27 +134,32 @@ export function Home() {
 
   return (
     <div className="flex min-h-full flex-col bg-navy pb-[max(2rem,env(safe-area-inset-bottom))] text-cream">
-      <header className="px-5 pt-[max(1.25rem,env(safe-area-inset-top))]">
+      <header className="px-5 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div className="flex flex-col items-center text-center">
           <img
             src="/calimesa-logo.png"
             alt="Calimesa Fire Department"
-            className="h-24 w-auto"
+            className="h-16 w-auto"
           />
-          <p className="mt-3 text-[10px] font-medium tracking-[0.22em] text-cream/65 uppercase">
+          <p className="mt-2 text-[10px] font-medium tracking-[0.22em] text-cream/65 uppercase">
             Calimesa Fire Department
           </p>
-          <h1 className="mt-1 font-display text-4xl font-extrabold leading-none tracking-tight">
+          <h1 className="mt-0.5 font-display text-3xl font-extrabold leading-none tracking-tight">
             Calimesa Portal
           </h1>
-          <span className="mt-3 block h-px w-10 bg-ember" aria-hidden />
+          <span className="mt-2 block h-px w-10 bg-ember" aria-hidden />
         </div>
       </header>
 
       <HomeToday />
 
+      <nav className="flex flex-col gap-5 px-4 pt-4 pb-2" aria-label="Home">
+        <TileRow title="On shift" tiles={ON_SHIFT} onOpen={open} />
+        <TileRow title="House" tiles={HOUSE} onOpen={open} />
+      </nav>
+
       {!hint ? (
-        <div className="mx-5 mt-4 flex items-start gap-3 rounded-md border border-cream/15 bg-navy-2 p-3">
+        <div className="mx-5 mt-4 mb-6 flex items-start gap-3 rounded-md border border-cream/15 bg-navy-2 p-3">
           <p className="flex-1 text-sm leading-relaxed text-cream/85">
             On iPhone, open in Safari, tap Share, then Add to Home Screen.
           </p>
@@ -159,12 +172,9 @@ export function Home() {
             <X className="size-4" />
           </button>
         </div>
-      ) : null}
-
-      <nav className="flex flex-col gap-6 px-4 pt-6 pb-8" aria-label="Home">
-        <TileRow title="On shift" tiles={ON_SHIFT} onOpen={open} />
-        <TileRow title="House" tiles={HOUSE} onOpen={open} />
-      </nav>
+      ) : (
+        <div className="h-6" />
+      )}
     </div>
   );
 }
@@ -181,7 +191,7 @@ function TileRow({
   return (
     <div>
       <p className="mb-3 text-[10px] font-medium tracking-[0.18em] text-cream/60 uppercase">{title}</p>
-      <div className="grid grid-cols-4 gap-x-3 gap-y-4">
+      <div className="grid grid-cols-5 gap-x-2 gap-y-3">
         {tiles.map((tile) => {
           const Icon = tile.icon;
           return (
@@ -190,17 +200,17 @@ function TileRow({
               type="button"
               onClick={() => onOpen(tile)}
               aria-label={`${tile.label}. ${tile.hint}`}
-              className="flex min-h-11 flex-col items-center gap-2"
+              className="flex min-h-11 flex-col items-center gap-1.5"
             >
               <span
                 className={cn(
-                  "flex size-16 items-center justify-center rounded-xl bg-cream shadow-panel transition-transform duration-150 ease-out active:scale-95",
+                  "flex size-14 items-center justify-center rounded-xl bg-cream shadow-panel transition-transform duration-150 ease-out active:scale-95",
                   TONE[tile.tone],
                 )}
               >
-                <Icon className="size-8" strokeWidth={1.75} />
+                <Icon className="size-7" strokeWidth={1.75} />
               </span>
-              <span className="text-center text-xs font-semibold leading-tight text-cream">
+              <span className="text-center text-[11px] font-semibold leading-tight text-cream">
                 {tile.label}
               </span>
             </button>

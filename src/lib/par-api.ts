@@ -70,3 +70,29 @@ export const resetParMins = createServerFn({ method: "POST" })
       throw err;
     }
   });
+
+export const resetFacilityQty = createServerFn({ method: "POST" })
+  .validator(z.object(adminFields))
+  .handler(async ({ data }) => {
+    try {
+      const { resetFacilityQty: reset } = await import("@/lib/par.server");
+      return { ok: true as const, house: await reset(data.username, data.password) };
+    } catch (err) {
+      const { IsaAdminError } = await import("@/lib/isa.server");
+      if (err instanceof IsaAdminError) return { ok: false as const, error: err.message };
+      throw err;
+    }
+  });
+
+export const resetFacilityMins = createServerFn({ method: "POST" })
+  .validator(z.object(adminFields))
+  .handler(async ({ data }) => {
+    try {
+      const { resetFacilityMins: reset } = await import("@/lib/par.server");
+      return { ok: true as const, house: await reset(data.username, data.password) };
+    } catch (err) {
+      const { IsaAdminError } = await import("@/lib/isa.server");
+      if (err instanceof IsaAdminError) return { ok: false as const, error: err.message };
+      throw err;
+    }
+  });

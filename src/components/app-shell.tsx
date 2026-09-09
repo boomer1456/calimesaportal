@@ -1,4 +1,4 @@
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { lazy, Suspense, useEffect } from "react";
 import { BackStackProvider, useBackLayer, useBackStack } from "@/components/back-stack";
 import { Home } from "@/components/home";
@@ -42,6 +42,9 @@ const Skills = lazy(() =>
 const Weather = lazy(() =>
   import("@/components/weather").then((m) => ({ default: m.Weather })),
 );
+const StrikeTeam = lazy(() =>
+  import("@/components/strike-team").then((m) => ({ default: m.StrikeTeam })),
+);
 
 const YEARS: AppYear[] = [2026, 2027];
 const SHIFTS: ShiftFilter[] = ["all", "A", "B", "C"];
@@ -56,6 +59,7 @@ const TITLES: Record<Exclude<Tab, "home">, string> = {
   policy: "Binder",
   isa: "Log training",
   weather: "Weather",
+  strike: "Strike team",
 };
 
 export function AppShell() {
@@ -104,7 +108,9 @@ function Shell() {
     ? "Drill"
     : formFillId?.startsWith("P-Card")
       ? "P-card"
-      : tab === "policy"
+      : formFillId === "Time-card"
+        ? "Time card"
+        : tab === "policy"
         ? policyPane === "forms"
           ? "Forms"
           : policyPane === "radio"
@@ -200,7 +206,7 @@ function Shell() {
           </header>
 
           <main className="flex-1 px-4 py-4 pb-[max(2rem,env(safe-area-inset-bottom))]">
-            <Suspense fallback={<div className="h-32" aria-busy="true" />}>
+            <Suspense fallback={<TabLoading label={title} />}>
               {selected ? (
                 <EventDetail id={selected} />
               ) : tab === "calendar" ? (
@@ -223,6 +229,8 @@ function Shell() {
                 <IsaLog />
               ) : tab === "weather" ? (
                 <Weather />
+              ) : tab === "strike" ? (
+                <StrikeTeam />
               ) : (
                 <Policy />
               )}
@@ -231,6 +239,20 @@ function Shell() {
         </div>
       )}
       <IsaAdminDialog />
+    </div>
+  );
+}
+
+function TabLoading({ label }: { label: string }) {
+  return (
+    <div
+      className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <Loader2 className="size-8 animate-spin text-navy" aria-hidden />
+      <p className="font-display text-xl font-semibold text-navy">Loading {label}</p>
     </div>
   );
 }

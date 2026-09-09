@@ -14,7 +14,19 @@ from pathlib import Path
 import pymupdf
 from PIL import Image, ImageOps
 
-TEMPLATE = Path(__file__).resolve().parents[1] / "public" / "docs" / "procurement-card.pdf"
+def template_path() -> Path:
+    root = Path(__file__).resolve().parents[1]
+    cwd = Path.cwd()
+    for path in (
+        root / "public" / "procurement-card.pdf",
+        root / "public" / "docs" / "procurement-card.pdf",
+        cwd / "public" / "procurement-card.pdf",
+        cwd / "public" / "docs" / "procurement-card.pdf",
+        cwd / "procurement-card.pdf",
+    ):
+        if path.exists():
+            return path
+    raise FileNotFoundError("City procurement form is missing.")
 
 try:
     from pillow_heif import register_heif_opener
@@ -284,7 +296,7 @@ def stamp_pdf(fields: dict[str, str], receipt: str | None, dest: Path) -> None:
             receipt = jpeg
         except Exception:
             receipt = None
-    doc = pymupdf.open(TEMPLATE)
+    doc = pymupdf.open(template_path())
     page = doc[0]
     mapping = {
         "Date of Purchase": fields.get("date", ""),

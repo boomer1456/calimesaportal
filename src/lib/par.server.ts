@@ -1,5 +1,6 @@
 import { getSql } from "@/lib/db";
-import { PAR_ITEMS, defaultQty, protocolMin, stationMin, type ParLevel } from "@/lib/par-3303";
+import { PAR_ITEMS, defaultQty, protocolMin, stationMin, type ParItem, type ParLevel } from "@/lib/par-3303";
+import { FACILITY_ITEMS } from "@/lib/par-facilities";
 import { assertAdmin } from "@/lib/isa.server";
 
 export type ParHouse = {
@@ -17,8 +18,8 @@ function clamp(n: number) {
   return Math.max(0, Math.min(999, Math.round(n)));
 }
 
-function itemById(id: string) {
-  return PAR_ITEMS.find((x) => x.id === id) ?? null;
+function itemById(id: string): ParItem | null {
+  return PAR_ITEMS.find((x) => x.id === id) ?? FACILITY_ITEMS.find((x) => x.id === id) ?? null;
 }
 
 function mapHouse(rows: Row[]): ParHouse {
@@ -124,6 +125,32 @@ export async function resetParMins(
   const sql = await getSql();
   for (const item of PAR_ITEMS) {
     if (protocolMin(item, level) == null) continue;
+    await sql`
+      update ems_par_counts set min_qty = null, updated_at = now() where item_id = ${item.id}
+    `;
+  }
+  return readParHouse();
+}
+
+export async function resetFacilityQty(username: string, password: string): Promise<ParHouse> {
+  assertAdmin(username, password);
+  const sql = await getSql();
+  for (const item of FACILITY_ITEMS) {
+    const rows = await sql<Row>`select item_id, qty, min_qty from ems_par_counts where item_id = ${item.id}`;
+    const minQty = rows[0]?.min_qty ?? null;
+    await sql`
+      insert into ems_par_counts (item_id, qty, min_qty, updated_at)
+      values (${item.id}, 0, ${minQty}, now())
+      on conflict (item_id) do update set qty = 0, updated_at = now()
+    `;
+  }
+  return readParHouse();
+}
+
+export async function resetFacilityMins(username: string, password: string): Promise<ParHouse> {
+  assertAdmin(username, password);
+  const sql = await getSql();
+  for (const item of FACILITY_ITEMS) {
     await sql`
       update ems_par_counts set min_qty = null, updated_at = now() where item_id = ${item.id}
     `;

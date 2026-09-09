@@ -7,8 +7,17 @@ import {
   stationMin,
   type ParItem,
 } from "@/lib/par-3303";
+import { FACILITY_ITEMS, FACILITY_SECTIONS } from "@/lib/par-facilities";
 import { houseMin, onHand, useParStore } from "@/lib/par-store";
-import { changeHouseMin, changeHouseQty, loadParHouse, resetHouseMins, resetHouseQty } from "@/lib/par-house";
+import {
+  changeHouseMin,
+  changeHouseQty,
+  loadParHouse,
+  resetHouseFacilityMins,
+  resetHouseFacilityQty,
+  resetHouseMins,
+  resetHouseQty,
+} from "@/lib/par-house";
 import { lockIsaAdmin, requireIsaAdmin } from "@/lib/isa-house";
 import { useTrainingStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -21,48 +30,84 @@ export function EmsPar() {
   const status = useParStore((s) => s.status);
   const error = useParStore((s) => s.error);
   const unlocked = useTrainingStore((s) => s.isaAdminUnlocked);
+  const [list, setList] = useState<"ems" | "station">("ems");
   const [q, setQ] = useState("");
   const [onlyShort, setOnlyShort] = useState(false);
+  const catalog = list === "ems" ? PAR_ITEMS : FACILITY_ITEMS;
+  const sections = list === "ems" ? PAR_SECTIONS : FACILITY_SECTIONS;
+  const parLevel = list === "ems" ? level : "als";
 
   function needOf(item: ParItem) {
-    if (stationMin(item, level) == null) return null;
-    return houseMin(item.id, level, min);
+    if (stationMin(item, parLevel) == null) return null;
+    return houseMin(item.id, parLevel, min);
   }
 
   const rows = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    return PAR_ITEMS.filter((item) => {
+    return catalog.filter((item) => {
       const p = needOf(item);
       if (p == null) return false;
       if (needle && !item.name.toLowerCase().includes(needle) && !item.section.toLowerCase().includes(needle)) {
         return false;
       }
-      const have = onHand(item.id, qty, level);
+      const have = onHand(item.id, qty, parLevel);
       if (onlyShort && have >= p) return false;
       return true;
     });
-  }, [level, q, onlyShort, qty, min]);
+  }, [catalog, parLevel, q, onlyShort, qty, min]);
 
   const shortCount = useMemo(() => {
-    return PAR_ITEMS.filter((item) => {
+    return catalog.filter((item) => {
       const p = needOf(item);
       if (p == null) return false;
-      return onHand(item.id, qty, level) < p;
+      return onHand(item.id, qty, parLevel) < p;
     }).length;
-  }, [level, qty, min]);
+  }, [catalog, parLevel, qty, min]);
 
   const grouped = useMemo(() => {
-    return PAR_SECTIONS.map((section) => ({
+    return sections.map((section) => ({
       section,
       items: rows.filter((r) => r.section === section),
     })).filter((g) => g.items.length);
-  }, [rows]);
+  }, [rows, sections]);
 
   return (
     <section className="flex flex-col gap-4 pb-8">
+      <div className="flex gap-1">
+        <button
+          type="button"
+          onClick={() => {
+            setList("ems");
+            setQ("");
+            setOnlyShort(false);
+          }}
+          className={cn(
+            "h-10 flex-1 rounded-sm text-sm font-semibold",
+            list === "ems" ? "bg-navy text-cream" : "bg-surface-2 text-muted",
+          )}
+        >
+          EMS gear
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setList("station");
+            setQ("");
+            setOnlyShort(false);
+          }}
+          className={cn(
+            "h-10 flex-1 rounded-sm text-sm font-semibold",
+            list === "station" ? "bg-navy text-cream" : "bg-surface-2 text-muted",
+          )}
+        >
+          Facilities
+        </button>
+      </div>
+
       <p className="text-sm leading-relaxed text-muted">
-        Cabinet check for two ALS engines on duty, with a little extra if a 3rd is up.
-        On-hand is the house count. Station min stays locked unless admin unlocks.
+        {list === "ems"
+          ? "Cabinet check for two ALS engines on duty, with a little extra if a 3rd is up. On-hand is the house count. Station min stays locked unless admin unlocks."
+          : "Station supplies from the facilities PAR sheet. On-hand starts at zero — count what you have. Printed pars are the starting mins. Mins stay locked unless admin unlocks."}
       </p>
 
       {unlocked ? (
@@ -85,28 +130,30 @@ export function EmsPar() {
         </button>
       )}
 
-      <div className="flex gap-1">
-        <button
-          type="button"
-          onClick={() => setLevel("bls")}
-          className={cn(
-            "h-10 flex-1 rounded-sm text-sm font-semibold",
-            level === "bls" ? "bg-navy text-cream" : "bg-surface-2 text-muted",
-          )}
-        >
-          BLS
-        </button>
-        <button
-          type="button"
-          onClick={() => setLevel("als")}
-          className={cn(
-            "h-10 flex-1 rounded-sm text-sm font-semibold",
-            level === "als" ? "bg-navy text-cream" : "bg-surface-2 text-muted",
-          )}
-        >
-          ALS
-        </button>
-      </div>
+      {list === "ems" ? (
+        <div className="flex gap-1">
+          <button
+            type="button"
+            onClick={() => setLevel("bls")}
+            className={cn(
+              "h-10 flex-1 rounded-sm text-sm font-semibold",
+              level === "bls" ? "bg-navy text-cream" : "bg-surface-2 text-muted",
+            )}
+          >
+            BLS
+          </button>
+          <button
+            type="button"
+            onClick={() => setLevel("als")}
+            className={cn(
+              "h-10 flex-1 rounded-sm text-sm font-semibold",
+              level === "als" ? "bg-navy text-cream" : "bg-surface-2 text-muted",
+            )}
+          >
+            ALS
+          </button>
+        </div>
+      ) : null}
 
       <div className="flex gap-2">
         <button
@@ -136,13 +183,14 @@ export function EmsPar() {
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search gauze, naloxone, i-gel…"
+          placeholder={list === "ems" ? "Search gauze, naloxone, i-gel…" : "Search soap, liners, mop…"}
           className="h-full w-full bg-transparent text-sm text-ink outline-none placeholder:text-subtle"
         />
       </label>
 
       <p className="text-xs text-muted">
-        {level === "bls" ? "Station BLS" : "Station ALS"} · {rows.length} items
+        {list === "ems" ? (level === "bls" ? "Station BLS" : "Station ALS") : "Station supplies"} · {rows.length}{" "}
+        items
         {shortCount ? ` · ${shortCount} short` : ""}
         {unlocked ? " · mins unlocked" : ""}
         {status === "loading" ? " · syncing house" : ""}
@@ -158,7 +206,7 @@ export function EmsPar() {
       ) : null}
 
       {grouped.map((g) => (
-        <details key={g.section} className="rounded-lg border border-line bg-surface-2">
+        <details key={g.section} open={list === "station"} className="rounded-lg border border-line bg-surface-2">
           <summary className="flex min-h-12 cursor-pointer items-center justify-between gap-2 px-3 py-2 text-sm font-semibold text-navy">
             <span>{g.section}</span>
             <span className="text-xs font-medium text-muted">{g.items.length}</span>
@@ -168,7 +216,7 @@ export function EmsPar() {
               <ParRow
                 key={item.id}
                 item={item}
-                have={onHand(item.id, qty, level)}
+                have={onHand(item.id, qty, parLevel)}
                 need={needOf(item) ?? 0}
                 canEditMin={unlocked}
                 onQty={(d) => void changeHouseQty(item.id, d)}
@@ -185,7 +233,7 @@ export function EmsPar() {
         </p>
       ) : null}
 
-      {unlocked ? (
+      {unlocked && list === "ems" ? (
         <>
           <Button type="button" variant="outline" onClick={() => resetHouseQty(level)}>
             <RotateCcw className="size-4" />
@@ -197,15 +245,29 @@ export function EmsPar() {
           </Button>
         </>
       ) : null}
-      <a
-        href="/docs/remsa-3303.pdf"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex h-11 items-center justify-center gap-2 text-sm font-semibold text-navy"
-      >
-        Open REMSA 3303
-        <ExternalLink className="size-4" />
-      </a>
+      {unlocked && list === "station" ? (
+        <>
+          <Button type="button" variant="outline" onClick={() => resetHouseFacilityQty()}>
+            <RotateCcw className="size-4" />
+            Reset on-hand to zero
+          </Button>
+          <Button type="button" variant="outline" onClick={() => resetHouseFacilityMins()}>
+            <RotateCcw className="size-4" />
+            Reset mins to sheet pars
+          </Button>
+        </>
+      ) : null}
+      {list === "ems" ? (
+        <a
+          href="/docs/remsa-3303.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex h-11 items-center justify-center gap-2 text-sm font-semibold text-navy"
+        >
+          Open REMSA 3303
+          <ExternalLink className="size-4" />
+        </a>
+      ) : null}
     </section>
   );
 }

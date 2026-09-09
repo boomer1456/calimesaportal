@@ -350,12 +350,14 @@ export function ProcurementForm({
         setSavedId(row.id);
         setMore(Boolean(row.card || row.coding || row.supervisor));
         setTab("new");
-        setStep(2);
         try {
           await buildFilled(next, row.image);
-        } catch {
-          /* preview is extra */
+        } catch (err) {
+          if (live) {
+            setError(err instanceof Error ? err.message : "Could not rebuild the City form.");
+          }
         }
+        if (live) setStep(3);
       } catch {
         if (live) setError("Could not load that receipt.");
       } finally {
@@ -450,8 +452,9 @@ export function ProcurementForm({
     setSaving(true);
     try {
       await buildFilled(fields, photo);
-    } catch {
-      setError("Could not build the PDF. The receipt can still go on the house log.");
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not build the PDF. The receipt can still go on the house log.");
     }
 
     try {
@@ -841,6 +844,13 @@ export function ProcurementForm({
               <p className="text-sm leading-relaxed text-shift-c">
                 Saved to the house archive. Print or share this with Accounts Payable.
               </p>
+              {photo ? (
+                <img
+                  src={photo}
+                  alt="Receipt"
+                  className="max-h-56 w-full rounded-md border border-line bg-surface object-contain"
+                />
+              ) : null}
               {previewUrl ? (
                 <img
                   src={previewUrl}
@@ -856,8 +866,8 @@ export function ProcurementForm({
                 />
               ) : (
                 <p className="rounded-md border border-line bg-surface-2 p-3 text-sm text-muted">
-                  Ticket is in the archive. The City form preview did not build — download
-                  still works after you go back and save again.
+                  Ticket is in the archive. The City form is still building — try Save again, or
+                  use the receipt photo above.
                 </p>
               )}
               <div className="grid grid-cols-2 gap-2">

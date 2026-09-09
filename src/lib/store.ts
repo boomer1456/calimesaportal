@@ -20,10 +20,11 @@ export type Tab =
   | "map"
   | "policy"
   | "isa"
-  | "weather";
+  | "weather"
+  | "strike";
 export type ShiftFilter = "all" | Shift;
 export type CalendarView = "month" | "list";
-export type PolicyPane = "policies" | "forms" | "radio";
+export type PolicyPane = "policies" | "forms" | "radio" | "contacts";
 export type RookiePane = "map" | "life" | "ops";
 export type IsaPane = "log" | "sheet" | "roster" | "course";
 export type HouseStatus = "idle" | "loading" | "ready" | "error";
@@ -76,6 +77,7 @@ type TrainingState = {
   openDrill: (ev: { id: string; year: AppYear; month: number }) => void;
   openIsa: (open: boolean, eventId?: string) => void;
   openPcard: () => void;
+  openTimecard: () => void;
   setStatus: (id: string, status: EventStatus) => void;
   setNote: (id: string, note: string) => void;
   dismissInstallHint: () => void;
@@ -151,6 +153,13 @@ export const useTrainingStore = create<TrainingState>()(
           tab: "policy",
           policyPane: "forms",
           formFillId: "P-Card",
+          selectedEventId: null,
+        }),
+      openTimecard: () =>
+        set({
+          tab: "policy",
+          policyPane: "forms",
+          formFillId: "Time-card",
           selectedEventId: null,
         }),
       setStatus: (id, status) =>

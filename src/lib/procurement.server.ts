@@ -1,9 +1,17 @@
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-const SCRIPT = join(process.cwd(), "scripts/procurement.py");
+function pythonScript(): string {
+  const names = ["scripts/procurement.py", "procurement.py"];
+  for (const name of names) {
+    const path = join(process.cwd(), name);
+    if (existsSync(path)) return path;
+  }
+  return join(process.cwd(), "scripts/procurement.py");
+}
 
 function runPython(args: string[]): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -69,7 +77,7 @@ export async function parseReceiptImage(image: string): Promise<ReceiptFields> {
     if (bytes.length < 80) throw new Error("That photo is empty.");
     const imgPath = join(dir, `receipt.${ext}`);
     await writeFile(imgPath, bytes);
-    const out = await runPython([SCRIPT, "--ocr", imgPath]);
+    const out = await runPython([pythonScript(), "--ocr", imgPath]);
     const jsonStart = out.lastIndexOf("{");
     const jsonText = jsonStart >= 0 ? out.slice(jsonStart) : out;
     return JSON.parse(jsonText) as ReceiptFields;
@@ -108,7 +116,7 @@ export async function fillProcurementPdf(input: {
         supervisor: input.supervisor ?? "",
       }),
     );
-    const args = [SCRIPT, "--fill", fieldsPath, "--out", outPath];
+    const args = [pythonScript(), "--fill", fieldsPath, "--out", outPath];
     if (input.image) {
       const { ext, bytes } = decodeDataUrl(input.image);
       const receiptPath = join(dir, `receipt.${ext}`);

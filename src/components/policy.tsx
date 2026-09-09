@@ -1,6 +1,7 @@
 import { useTrainingStore } from "@/lib/store";
 import { useMemo, useState } from "react";
 import {
+  BookOpen,
   Download,
   ExternalLink,
   FileText,
@@ -21,8 +22,11 @@ import {
   type BinderDoc,
   type BinderFolder,
 } from "@/lib/binder";
+import { RADIO_GUIDES, RADIO_GUIDE_BY_ID, type RadioGuide } from "@/lib/radio-guides";
 import { CALFIRE_TONES, RADIO_GROUPS, filterChannels } from "@/lib/radio";
 import { ProcurementForm } from "@/components/procurement-form";
+import { TimecardForm } from "@/components/timecard-form";
+import { CityContacts } from "@/components/city-contacts";
 import { cn } from "@/lib/utils";
 
 const PANE_COPY = {
@@ -35,6 +39,11 @@ const PANE_COPY = {
     kicker: "House binder",
     title: "Forms",
     blurb: "Print, download, or fill on this phone. P-card is also on Home.",
+  },
+  contacts: {
+    kicker: "House binder",
+    title: "Contacts",
+    blurb: "Vendors and City Hall. Tap a number. Not for the public.",
   },
   radio: {
     kicker: "CAL FIRE RRU",
@@ -67,6 +76,10 @@ export function Policy() {
         startTab={fillId === "P-Card-archive" ? "archive" : "new"}
       />
     );
+  }
+
+  if (fillId === "Time-card") {
+    return <TimecardForm />;
   }
 
   if (fillId) {
@@ -102,6 +115,7 @@ export function Policy() {
             [
               ["policies", "Policies"],
               ["forms", "Forms"],
+              ["contacts", "Contacts"],
             ] as const
           ).map(([id, label]) => (
             <button
@@ -128,7 +142,9 @@ export function Policy() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder={pane === "forms" ? "Search forms" : "Search policies"}
+            placeholder={
+              pane === "forms" ? "Search forms" : pane === "contacts" ? "Search name, title, number" : "Search policies"
+            }
             className="h-full w-full bg-transparent text-sm text-ink outline-none placeholder:text-subtle"
           />
         </label>
@@ -157,6 +173,21 @@ export function Policy() {
               </span>
             </span>
           </button>
+          <button
+            type="button"
+            onClick={() => setLocalFill("Time-card")}
+            className="flex min-h-11 items-center gap-3 rounded-md bg-navy px-3 py-2.5 text-left text-cream"
+          >
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-sm bg-cream text-navy">
+              <FileText className="size-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-semibold">C.F.D. time card</span>
+              <span className="block text-xs text-cream/70">
+                Biweekly · fill, download, share, print
+              </span>
+            </span>
+          </button>
           <a
             href={BINDER_FILES.v4}
             download
@@ -172,6 +203,8 @@ export function Policy() {
             onOpen={setOpenDoc}
           />
         </>
+      ) : pane === "contacts" ? (
+        <CityContacts query={query} />
       ) : (
         <RadioPanel />
       )}
@@ -324,83 +357,48 @@ function BinderReader({
   onFill?: () => void;
 }) {
   const slice = policySliceHref(item);
-  const volume = volumePageHref(item);
   const preview = policyPreviewHref(item);
 
   if (!slice) return null;
 
   return (
     <section className="flex flex-col gap-3 pb-6">
-      <header className="rounded-lg bg-navy p-4 text-cream shadow-panel">
-        <p className="text-[10px] font-medium tracking-[0.18em] text-cream/70 uppercase">
+      <div>
+        <p className="text-[10px] font-medium tracking-[0.18em] text-muted uppercase">
           {item.volume}
           {item.page ? ` · p. ${item.page}` : ""}
         </p>
-        <h1 className="mt-1 font-display text-3xl font-bold leading-tight tracking-tight">
+        <h1 className="mt-1 font-display text-2xl font-bold leading-tight text-navy">
           {item.code} {item.title}
         </h1>
-      </header>
-
-      <div className="flex flex-wrap gap-2">
-        <a
-          href={slice}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-sm bg-navy px-3 text-sm font-semibold text-cream"
-        >
-          <FileText className="size-4" />
-          Open this {noun}
-        </a>
-        {volume ? (
-          <a
-            href={volume}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-sm border border-line bg-surface-2 px-3 text-sm font-semibold text-navy"
-          >
-            <ExternalLink className="size-4" />
-            Full volume
-          </a>
-        ) : null}
-        {onFill ? (
-          <button
-            type="button"
-            onClick={onFill}
-            className="flex h-11 w-full items-center justify-center gap-2 rounded-sm border border-line bg-surface-2 text-sm font-semibold text-navy"
-          >
-            Fill on this phone
-          </button>
-        ) : null}
       </div>
 
-      {preview ? (
-        <a
-          href={slice}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="overflow-hidden rounded-lg border border-line bg-cream"
+      {onFill ? (
+        <button
+          type="button"
+          onClick={onFill}
+          className="flex h-11 w-full items-center justify-center gap-2 rounded-sm border border-line bg-surface-2 text-sm font-semibold text-navy"
         >
-          <img
-            src={preview}
-            alt={`${item.code} ${item.title}`}
-            className="block w-full"
-          />
-        </a>
-      ) : (
-        <div className="overflow-hidden rounded-lg border border-line bg-surface-2">
-          <iframe
-            key={slice}
-            src={`${slice}#page=1&view=FitH`}
-            title={`${item.code} ${item.title}`}
-            className="h-[70vh] w-full bg-cream"
-          />
-        </div>
-      )}
+          Fill on this phone
+        </button>
+      ) : null}
 
-      <p className="text-xs leading-relaxed text-muted">
-        First page of this {noun}. Open the PDF to read the rest, or open the full
-        volume at this page.
-      </p>
+      {preview ? (
+        <img
+          src={preview}
+          alt={`${item.code} ${item.title}`}
+          className="block w-full rounded-md border border-line bg-white"
+        />
+      ) : null}
+
+      <div className="overflow-hidden rounded-md border border-line bg-white">
+        <iframe
+          key={slice}
+          src={`${slice}#view=FitH`}
+          title={`${item.code} ${item.title}`}
+          className="h-[80vh] w-full bg-white"
+        />
+      </div>
     </section>
   );
 }
@@ -408,7 +406,14 @@ function BinderReader({
 function RadioPanel() {
   const [query, setQuery] = useState("");
   const [group, setGroup] = useState<(typeof RADIO_GROUPS)[number]["id"]>("daily");
+  const [guideId, setGuideId] = useState<RadioGuide["id"] | null>(null);
   const list = useMemo(() => filterChannels(query, group), [query, group]);
+  const guide = guideId ? RADIO_GUIDE_BY_ID[guideId] : null;
+  useBackLayer(Boolean(guide), () => setGuideId(null));
+
+  if (guide) {
+    return <RadioGuideReader guide={guide} />;
+  }
 
   return (
     <div className="flex flex-col gap-3">
@@ -445,6 +450,37 @@ function RadioPanel() {
           </a>
         </div>
       </article>
+
+      <section className="rounded-lg border border-line bg-surface-2 p-3">
+        <p className="text-[10px] font-medium tracking-[0.18em] text-muted uppercase">
+          BK user guides
+        </p>
+        <p className="mt-1 text-sm leading-relaxed text-muted">
+          Pocket how-to for the BKR 5000, KNG, and KNG2. Manufacturer manuals and fire videos — CFD
+          / RRU programming still wins.
+        </p>
+        <ul className="mt-3 flex flex-col gap-2">
+          {RADIO_GUIDES.map((g) => (
+            <li key={g.id}>
+              <button
+                type="button"
+                onClick={() => setGuideId(g.id)}
+                className="flex min-h-11 w-full items-center gap-3 rounded-md border border-line bg-surface px-3 py-2.5 text-left"
+              >
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-sm bg-navy text-cream">
+                  <BookOpen className="size-5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-display text-lg font-semibold leading-tight text-navy">
+                    {g.title}
+                  </span>
+                  <span className="block text-xs leading-snug text-muted">{g.teaser}</span>
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       <label className="flex h-11 items-center gap-2 rounded-sm border border-line bg-surface-2 px-3">
         <RadioIcon className="size-4 text-muted" />
@@ -522,6 +558,77 @@ function RadioPanel() {
         <p className="mt-2 text-xs text-muted">OST = operator-selectable tone on transmit.</p>
       </article>
     </div>
+  );
+}
+
+const GUIDE_KIND: Record<RadioGuide["links"][number]["kind"], string> = {
+  manual: "Manual",
+  video: "Video",
+  web: "Guide",
+};
+
+function RadioGuideReader({ guide }: { guide: RadioGuide }) {
+  return (
+    <section className="flex flex-col gap-4 pb-6">
+      <header className="rounded-lg bg-navy p-4 text-cream shadow-panel">
+        <p className="text-[10px] font-medium tracking-[0.18em] text-cream/70 uppercase">
+          {guide.kicker}
+        </p>
+        <h1 className="mt-1 font-display text-3xl font-bold leading-tight tracking-tight">
+          {guide.title}
+        </h1>
+        <p className="mt-3 text-sm leading-relaxed text-cream/85">{guide.blurb}</p>
+      </header>
+
+      <article className="rounded-lg border border-line bg-surface-2 p-4">
+        <h2 className="font-display text-xl font-semibold text-navy">Why this radio</h2>
+        <p className="mt-2 text-sm leading-relaxed text-ink">{guide.why}</p>
+      </article>
+
+      <article className="rounded-lg border border-line bg-surface-2 p-4">
+        <h2 className="font-display text-xl font-semibold text-navy">On the fire</h2>
+        <p className="mt-1 text-sm text-muted">
+          The radio in your pocket and Zone 31 win. These are manufacturer habits, not CFD SOGs.
+        </p>
+        <ul className="mt-3 space-y-2">
+          {guide.tips.map((tip) => (
+            <li key={tip} className="flex gap-3 text-sm leading-relaxed text-ink">
+              <span className="mt-2 size-1.5 shrink-0 rounded-full bg-ember" />
+              {tip}
+            </li>
+          ))}
+        </ul>
+      </article>
+
+      <article className="rounded-lg border border-line bg-navy p-4 text-cream">
+        <p className="text-[10px] font-medium tracking-[0.18em] text-cream/70 uppercase">
+          Manuals and videos
+        </p>
+        <p className="mt-1 text-sm text-cream/80">
+          Official BK PDFs plus fire-department walkthroughs. Opens in a new tab.
+        </p>
+        <ul className="mt-3 space-y-2">
+          {guide.links.map((link) => (
+            <li key={link.href}>
+              <a
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex min-h-11 items-center gap-3 rounded-sm bg-navy-2 px-3 py-2"
+              >
+                <span className="shrink-0 rounded-xs bg-cream/15 px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-cream uppercase">
+                  {GUIDE_KIND[link.kind]}
+                </span>
+                <span className="flex-1 text-sm font-medium leading-snug text-cream">
+                  {link.label}
+                </span>
+                <ExternalLink className="size-4 shrink-0 text-cream/70" />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </article>
+    </section>
   );
 }
 

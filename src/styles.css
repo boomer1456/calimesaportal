@@ -84,8 +84,10 @@
   }
 
   button:not(:disabled),
-  [role="button"]:not(:disabled) {
+  [role="button"]:not(:disabled),
+  a {
     cursor: pointer;
+    touch-action: manipulation;
   }
 }
 
@@ -269,8 +271,48 @@ html[data-frame] body {
     min-width: 0;
     font-size: 10px;
   }
+}
 
-  .print-only {
-    display: block !important;
+/* Time card — landscape letter, same as the C.F.D. spreadsheet. */
+html[data-print="timecard"] .timecard-print-sheet {
+  display: none;
+}
+
+@media print {
+  html[data-print="timecard"] {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  html[data-print="timecard"] body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  html[data-print="timecard"] .app-scroll {
+    position: static !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  html[data-print="timecard"] .timecard-print-sheet {
+    display: flex !important;
+    flex-direction: column;
+    width: 100%;
+    min-height: 100%;
+    height: 8in;
+  }
+
+  html[data-print="timecard"] .timecard-print-sheet table {
+    width: 100%;
+    flex: 1;
+  }
+
+  html[data-print="timecard"] .timecard-print-sheet th,
+  html[data-print="timecard"] .timecard-print-sheet td {
+    padding: 0.22rem 0.45rem;
+    font-size: 12px;
   }
 }

@@ -186,6 +186,22 @@ export const POLICY_FOLDERS: BinderFolder[] = [
 
 export const FORM_FOLDERS: BinderFolder[] = [
   {
+    id: "payroll",
+    title: "Payroll",
+    kicker: "Biweekly time card",
+    items: items("Payroll", undefined, [
+      [
+        "Time-card",
+        "C.F.D. time card",
+        {
+          fillable: true,
+          code: "TC",
+          note: "Saturday start, 14 days. Fill on this phone, then download, share, or print.",
+        },
+      ],
+    ]),
+  },
+  {
     id: "401",
     title: "401 Administration",
     kicker: "Shift, ride-along, receipt",

@@ -359,6 +359,7 @@ const BURN = new Set([
 export function stationMin(item: ParItem, level: ParLevel): number | null {
   const unit = protocolMin(item, level);
   if (unit == null) return null;
+  if (item.id.startsWith("fac-")) return unit;
   if (item.id === "aspirin-81-mg-1-tablet-chewable-tablet-in-packet") return 2;
   if (item.id === "medical-exam-glove") return 3;
   if (item.id === "nitroglycerin-0-4-mg-1-dose-multi-dose-spray-or") return 3;
@@ -372,6 +373,7 @@ export function stationMin(item: ParItem, level: ParLevel): number | null {
 }
 
 export function defaultQty(item: ParItem): number {
+  if (item.id.startsWith("fac-")) return 0;
   return stationMin(item, "als") ?? stationMin(item, "bls") ?? 0;
 }
 

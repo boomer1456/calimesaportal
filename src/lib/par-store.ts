@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { PAR_ITEMS, defaultQty, protocolMin, stationMin, type ParLevel } from "@/lib/par-3303";
+import { FACILITY_ITEMS } from "@/lib/par-facilities";
 
 export type ParHouse = {
   qty: Record<string, number>;
@@ -28,15 +29,19 @@ function clamp(n: number) {
   return Math.max(0, Math.min(999, Math.round(n)));
 }
 
+function catalogItem(id: string) {
+  return PAR_ITEMS.find((x) => x.id === id) ?? FACILITY_ITEMS.find((x) => x.id === id);
+}
+
 export function houseMin(id: string, level: ParLevel, override: Record<string, number>): number {
   if (override[id] != null) return override[id];
-  const item = PAR_ITEMS.find((x) => x.id === id);
+  const item = catalogItem(id);
   return item ? stationMin(item, level) ?? 0 : 0;
 }
 
 export function onHand(id: string, qty: Record<string, number>, _level: ParLevel): number {
   if (qty[id] != null) return qty[id];
-  const item = PAR_ITEMS.find((x) => x.id === id);
+  const item = catalogItem(id);
   return item ? defaultQty(item) : 0;
 }
 
