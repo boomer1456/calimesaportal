@@ -5,12 +5,9 @@ This repo runs under Base44 via `docker-compose.base44.yml`.
 - **Stack**: TanStack Start (React 19) + Vite 8 dev server, Tailwind v4, Better Auth (OFF), PGLite (embedded WASM Postgres — no external DB needed).
 - **Dev server**: `npm run dev` → Vite on `0.0.0.0:8080` inside the container, mapped to host port 3000.
 - **No external secrets required** — auth is off (`VITE_AUTH_ENABLED=false` in `.grok/app-env.json`), DB is embedded PGLite.
-- **node_modules volume**: a named Docker volume (`node_modules`) persists installed packages across container recreations, so restarts after merges/branch switches are fast.
-- **Health check**: `start_period: 120s`, `timeout: 10s`, `retries: 30` — gives the dev server ample time to compile and respond on first request.
 - **Verify**: `curl -sf http://localhost:3000/` returns rendered HTML (Calimesa Fire Department portal).
 - **Live reload**: Vite HMR is active; edits to source appear in the preview automatically. `CHOKIDAR_USEPOLLING=true` is set for bind-mount file watching.
 - **Host allowlist**: `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS` is passed bare from the platform env so Vite accepts the preview proxy host.
-- **PGLite error handling**: `src/lib/db.ts` logs PGLite bootstrap failures without re-throwing, preventing unhandled promise rejections that crash serverless functions when publishing.
 
 ---
 
