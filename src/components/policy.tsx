@@ -1,5 +1,5 @@
 import { useTrainingStore } from "@/lib/store";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   BookOpen,
   Download,
@@ -358,6 +358,18 @@ function BinderReader({
 }) {
   const slice = policySliceHref(item);
   const preview = policyPreviewHref(item);
+  const [pdfOk, setPdfOk] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!slice) {
+      setPdfOk(false);
+      return;
+    }
+    setPdfOk(null);
+    fetch(slice, { method: "HEAD" })
+      .then((r) => setPdfOk(r.ok))
+      .catch(() => setPdfOk(false));
+  }, [slice]);
 
   if (!slice) return null;
 
@@ -391,14 +403,20 @@ function BinderReader({
         />
       ) : null}
 
-      <div className="overflow-hidden rounded-md border border-line bg-white">
-        <iframe
-          key={slice}
-          src={`${slice}#view=FitH`}
-          title={`${item.code} ${item.title}`}
-          className="h-[80vh] w-full bg-white"
-        />
-      </div>
+      {pdfOk === true ? (
+        <div className="overflow-hidden rounded-md border border-line bg-white">
+          <iframe
+            key={slice}
+            src={`${slice}#view=FitH`}
+            title={`${item.code} ${item.title}`}
+            className="h-[80vh] w-full bg-white"
+          />
+        </div>
+      ) : pdfOk === false ? (
+        <p className="rounded-md border border-line bg-surface-2 px-3 py-2 text-xs text-muted">
+          Full PDF not attached. First-page preview shown above.
+        </p>
+      ) : null}
     </section>
   );
 }
