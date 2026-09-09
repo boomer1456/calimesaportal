@@ -1,3 +1,16 @@
+## Base44 Setup
+
+This repo runs under Base44 via `docker-compose.base44.yml`.
+
+- **Stack**: TanStack Start (React 19) + Vite 8 dev server, Tailwind v4, Better Auth (OFF), PGLite (embedded WASM Postgres — no external DB needed).
+- **Dev server**: `npm run dev` → Vite on `0.0.0.0:8080` inside the container, mapped to host port 3000.
+- **No external secrets required** — auth is off (`VITE_AUTH_ENABLED=false` in `.grok/app-env.json`), DB is embedded PGLite.
+- **Verify**: `curl -sf http://localhost:3000/` returns rendered HTML (Calimesa Fire Department portal).
+- **Live reload**: Vite HMR is active; edits to source appear in the preview automatically. `CHOKIDAR_USEPOLLING=true` is set for bind-mount file watching.
+- **Host allowlist**: `__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS` is passed bare from the platform env so Vite accepts the preview proxy host.
+
+---
+
 # App Builder Workspace
 
 **The single source of truth** for the App Builder sandbox contract. You are
