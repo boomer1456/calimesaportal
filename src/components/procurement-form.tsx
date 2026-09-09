@@ -157,6 +157,16 @@ async function decodeWithImgEl(file: File): Promise<string> {
   }
 }
 
+async function shrinkDataUrl(dataUrl: string, maxEdge: number, quality: number): Promise<string> {
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const el = new Image();
+    el.onload = () => resolve(el);
+    el.onerror = () => reject(new Error("shrink"));
+    el.src = dataUrl;
+  });
+  return drawToJpeg(img, img.naturalWidth || img.width, img.naturalHeight || img.height, maxEdge, quality);
+}
+
 async function decodeWithHeic2any(file: File): Promise<string> {
   const load = new Function(
     "u",

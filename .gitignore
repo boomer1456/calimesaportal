@@ -17,11 +17,14 @@ artifacts/
 # Uploaded scans. The app reads copies under public/docs.
 attachments/
 
-# Binder volume PDFs stay on disk. Too big for every restore point.
+# Binder scans stay on disk. Too big for every restore point.
 public/docs/*.pdf
 public/docs/*.xls
 public/docs/*.xlsx
 public/docs/*.docx
 public/docs/*.doc
-# Sliced per-policy PDFs are small — commit them.
-!public/docs/policies/*.pdf
+public/docs/**/*.pdf
+public/docs/**/*.xls
+public/docs/**/*.xlsx
+public/docs/**/*.docx
+public/docs/**/*.doc

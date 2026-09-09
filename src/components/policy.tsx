@@ -1,5 +1,5 @@
 import { useTrainingStore } from "@/lib/store";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   BookOpen,
   Download,
@@ -87,9 +87,13 @@ export function Policy() {
   }
 
   if (openDoc) {
+    const fromForms = pane === "forms";
     return (
       <BinderReader
         item={openDoc}
+        backLabel={fromForms ? "Forms" : "Policies"}
+        noun={fromForms ? "form" : "policy"}
+        onBack={() => go()}
         onFill={
           openDoc.fillable
             ? () => {
@@ -341,25 +345,19 @@ function DocRow({
 
 function BinderReader({
   item,
+  backLabel,
+  noun,
+  onBack,
   onFill,
 }: {
   item: BinderDoc;
+  backLabel: string;
+  noun: "policy" | "form";
+  onBack: () => void;
   onFill?: () => void;
 }) {
   const slice = policySliceHref(item);
   const preview = policyPreviewHref(item);
-  const [pdfOk, setPdfOk] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    if (!slice) {
-      setPdfOk(false);
-      return;
-    }
-    setPdfOk(null);
-    fetch(slice, { method: "HEAD" })
-      .then((r) => setPdfOk(r.ok))
-      .catch(() => setPdfOk(false));
-  }, [slice]);
 
   if (!slice) return null;
 
@@ -393,20 +391,14 @@ function BinderReader({
         />
       ) : null}
 
-      {pdfOk === true ? (
-        <div className="overflow-hidden rounded-md border border-line bg-white">
-          <iframe
-            key={slice}
-            src={`${slice}#view=FitH`}
-            title={`${item.code} ${item.title}`}
-            className="h-[80vh] w-full bg-white"
-          />
-        </div>
-      ) : pdfOk === false ? (
-        <p className="rounded-md border border-line bg-surface-2 px-3 py-2 text-xs text-muted">
-          Full PDF not attached. First-page preview shown above.
-        </p>
-      ) : null}
+      <div className="overflow-hidden rounded-md border border-line bg-white">
+        <iframe
+          key={slice}
+          src={`${slice}#view=FitH`}
+          title={`${item.code} ${item.title}`}
+          className="h-[80vh] w-full bg-white"
+        />
+      </div>
     </section>
   );
 }
